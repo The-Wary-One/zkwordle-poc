@@ -1,0 +1,17 @@
+overwrite: true
+schema: src/graphql/schema.ts
+generates:
+  src/graphql/generated.ts:
+    plugins:
+      - typescript
+      - typescript-resolvers
+    config:
+      numericEnums: true
+      useTypeImports: true
+      immutableTypes: true
+      strictScalars: true
+      scalars: 
+        JSONObject: ./scalars#JSONObject
+        NonEmptyString: ./scalars#NonEmptyString
+        ValidGuess: ./scalars#ValidGuess
+        WordHash: ./scalars#WordHash
