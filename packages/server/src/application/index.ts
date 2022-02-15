@@ -12,6 +12,12 @@ function extractHintsFromPublicSignals(s: zk.ZKPayload['publicSignals']): d.Hint
     return u.unsafeGet(e) // Safe here
 }
 
+const memoizedGetValidGuesses = cache.memoize(
+    () => T.of(d.getValidGuesses()),
+    () => 'validGuesses',
+    () => 0,
+)
+
 export default async function init() {
     const hashDecomposedWord = await zk.setupMimcSponge()
 
@@ -21,12 +27,9 @@ export default async function init() {
         return hashDecomposedWord(decomposedSolution)
     }
     const memoizedGetCurrentWordHash = cache.memoize(
-        {
-            max: 1,
-            ttl: d.msUntilNextWord(),
-        },
         () => T.of(getCurrentWordHash()),
         () => 'wordhash',
+        d.msUntilNextWord,
     )
 
     type ZKHintPayload = Readonly<zk.ZKPayload & { hints: d.Hints }>
@@ -46,9 +49,6 @@ export default async function init() {
         }
     }
     const memoizedCalculateHintWithProofFromGuess = cache.memoize(
-        {
-            max: 10000,
-        },
         calculateHintWithProofFromGuess,
         guess => guess,
         d.msUntilNextWord,
@@ -56,6 +56,7 @@ export default async function init() {
 
     return {
         getCurrentWordHash: memoizedGetCurrentWordHash,
+        getValidGuesses: memoizedGetValidGuesses,
         calculateHintWithProofFromGuess: memoizedCalculateHintWithProofFromGuess,
     }
 }

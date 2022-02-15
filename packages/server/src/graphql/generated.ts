@@ -56,7 +56,8 @@ export enum Hint {
 export type Query = {
   readonly __typename?: 'Query';
   readonly guess: GuessZkPayload;
-  readonly wordHash: Scalars['WordHash'];
+  readonly solutionHash: Scalars['WordHash'];
+  readonly validGuesses: ReadonlyArray<Scalars['ValidGuess']>;
 };
 
 
@@ -187,7 +188,8 @@ export interface NonEmptyStringScalarConfig extends GraphQLScalarTypeConfig<Reso
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   guess?: Resolver<ResolversTypes['GuessZKPayload'], ParentType, ContextType, RequireFields<QueryGuessArgs, 'input'>>;
-  wordHash?: Resolver<ResolversTypes['WordHash'], ParentType, ContextType>;
+  solutionHash?: Resolver<ResolversTypes['WordHash'], ParentType, ContextType>;
+  validGuesses?: Resolver<ReadonlyArray<ResolversTypes['ValidGuess']>, ParentType, ContextType>;
 };
 
 export interface ValidGuessScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['ValidGuess'], any> {

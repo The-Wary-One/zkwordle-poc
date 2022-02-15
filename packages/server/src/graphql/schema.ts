@@ -24,7 +24,8 @@ scalar WordHash
 scalar ValidGuess
 
 type Query {
-    wordHash: WordHash! @rateLimit(window: "5s", max: 1, message: "Too many calls!")
+    solutionHash: WordHash! @rateLimit(window: "5s", max: 1, message: "Too many calls!")
+    validGuesses: [ValidGuess!]! @rateLimit(window: "5s", max: 1, message: "Too many calls!")
     guess(input: GuessInput!): GuessZKPayload!
 }
 
@@ -56,12 +57,15 @@ enum Hint {
 `
 
 export default async function getSchema() {
-    const { getCurrentWordHash, calculateHintWithProofFromGuess } = await applicationInit()
+    const { getCurrentWordHash, getValidGuesses, calculateHintWithProofFromGuess } = await applicationInit()
 
     const resolvers: Resolvers & { Hint: Record<string, Hint> } = {
         Query: {
-            async wordHash() {
+            async solutionHash() {
                 return getCurrentWordHash()()
+            },
+            validGuesses() {
+                return getValidGuesses()()
             },
             async guess(_, args) {
                 const { hints, proof, publicSignals } = await calculateHintWithProofFromGuess(args.input.guess)()

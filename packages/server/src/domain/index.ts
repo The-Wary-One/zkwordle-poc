@@ -16,6 +16,8 @@ export function getSolution(): t.Solution {
     return c.WORDS[index % c.WORDS.length] as t.Solution // Only allowed location
 }
 
+export const getValidGuesses = () => c.VALID_GUESSES as RNEA.ReadonlyNonEmptyArray<t.ValidGuess>
+
 export function msUntilNextWord() {
     const now = Date.now()
     const nextWordAt = new Date(now)

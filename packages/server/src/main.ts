@@ -29,9 +29,10 @@ async function main() {
             useParserCache(),
             useValidationCache(),
             useResponseCache({
-                ttl: 10 * 60 * 1000, // cache 10min
+                ttl: 1 * 60 * 1000, // cache 1min
                 ttlPerSchemaCoordinate: {
                     'Query.__schema': undefined, // cache infinitely
+                    'Query.validGuesses': undefined, // cache infinitely
                 },
             }),
             useLogger(),
@@ -39,11 +40,11 @@ async function main() {
             useErrorHandler(errors => {
                 errors.forEach(e => console.error(e))
             }),
-            useMaskedErrors(),
+            useMaskedErrors({ errorMessage: 'Internal Server Error' }),
             useOpenTelemetry({
                 resolvers: true, // Tracks resolvers calls, and tracks resolvers thrown errors
                 variables: true, // Includes the operation variables values as part of the metadata collected
-                result: true, // Includes execution result object as part of the metadata collected
+                result: false, // Includes execution result object as part of the metadata collected
             }),
             useDepthLimit({
                 maxDepth: 10,

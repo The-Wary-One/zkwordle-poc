@@ -1,0 +1,3 @@
+[submodule "packages/client"]
+	path = packages/client
+	url = git@github.com:The-Wary-One/react-wordle.git
