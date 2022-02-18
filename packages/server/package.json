@@ -4,9 +4,13 @@
     "license": "MIT",
     "main": "build/main.js",
     "scripts": {
-        "dev": "ts-node src/main.ts",
+        "copy:wasm": "mkdir -p ./src/infrastructure/zk/generated && cp -R ../circuits/wordle_js/* ./src/infrastructure/zk/generated/",
+        "copy:zkey": "cp ../circuits/wordle_final.zkey ./src/infrastructure/zk/generated/",
+        "copy:zk": "yarn run copy:wasm && yarn run copy:zkey",
         "codegen": "graphql-codegen --config codegen.yml",
-        "compile": "yarn run codegen && tsc",
+        "compile": "tsc",
+        "copy:wasm:build": "cp ./src/infrastructure/zk/generated/* ./build/infrastructure/zk/generated/",
+        "all": "yarn run copy:zk && yarn run codegen && yarn run compile && yarn run copy:wasm:build",
         "start": "node build/main.js"
     },
     "dependencies": {
@@ -37,7 +41,6 @@
         "@graphql-codegen/typescript-resolvers": "2.4.3",
         "@types/lru-cache": "^5.1.1",
         "@types/node": "^17.0.13",
-        "ts-node": "^10.4.0",
         "typescript": "^4.5.5"
     }
 }

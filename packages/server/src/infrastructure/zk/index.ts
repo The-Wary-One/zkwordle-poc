@@ -1,3 +1,4 @@
+import * as Path from 'path'
 import * as fs from 'fs/promises'
 import { pipe } from 'fp-ts/lib/function'
 import * as T from 'fp-ts/Task'
@@ -5,11 +6,14 @@ import * as E from 'fp-ts/Either'
 import * as RNEA from 'fp-ts/ReadonlyNonEmptyArray'
 import * as cjs from 'circomlibjs' 
 import * as snarkjs from 'snarkjs'
-import { WitnessCalculator, WASM_PATH, ZKEY_PATH } from '@zkwordle/circuits'
+import WitnessCalculator from './generated/witness_calculator'
 
-import * as d from '../domain'
-import { WORD_LENGTH } from '../constants'
-import * as u from '../utils'
+import * as d from '../../domain'
+import { WORD_LENGTH } from '../../constants'
+import * as u from '../../utils'
+
+const WASM_PATH = Path.join(__dirname, 'generated/wordle.wasm')
+const ZKEY_PATH = Path.join(__dirname, 'generated/wordle_final.zkey')
 
 export const setupMimcSponge: T.Task<(dw: d.DecomposedValidWord) => d.WordHash> = async () => {
     const mimcSponge = await cjs.buildMimcSponge()
