@@ -11,7 +11,9 @@ import { useRateLimiter } from '@envelop/rate-limiter'
 
 import { getSchema } from './graphql'
 
-const PORT = 3001
+const NODE_ENV = process.env.NODE_ENV ?? 'production'
+const HOST = process.env.HOST ?? '0.0.0.0'
+const PORT = process.env.PORT ?? 3001
 
 type Request = HRequest & {
     custom: {
@@ -41,11 +43,11 @@ async function main() {
                 errors.forEach(e => console.error(e))
             }),
             useMaskedErrors({ errorMessage: 'Internal Server Error' }),
-            useOpenTelemetry({
-                resolvers: true, // Tracks resolvers calls, and tracks resolvers thrown errors
-                variables: true, // Includes the operation variables values as part of the metadata collected
-                result: false, // Includes execution result object as part of the metadata collected
-            }),
+            //useOpenTelemetry({
+            //    resolvers: true, // Tracks resolvers calls, and tracks resolvers thrown errors
+            //    variables: true, // Includes the operation variables values as part of the metadata collected
+            //    result: false, // Includes execution result object as part of the metadata collected
+            //}),
             useDepthLimit({
                 maxDepth: 10,
             }),
@@ -73,6 +75,10 @@ async function main() {
             }
 
             // Determine whether we should render GraphiQL instead of returning an API response
+            if (req.method === 'GET' && NODE_ENV === 'production') {
+                res.callNotFound()
+                return
+            }
             if (shouldRenderGraphiQL(request)) {
                 res.type('text/html')
                 res.send(renderGraphiQL())
@@ -106,8 +112,8 @@ async function main() {
         },
     })
 
-    app.listen(PORT, () => {
-        console.log(`GraphQL server is running on port: ${PORT}`)
+    app.listen(PORT, HOST, () => {
+        console.log(`GraphQL server is running on: ${HOST}:${PORT}`)
     })
 }
 

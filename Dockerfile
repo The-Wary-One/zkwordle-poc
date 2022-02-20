@@ -37,15 +37,19 @@ RUN git clone https://github.com/iden3/circom.git && \
     cd circom && \
     cargo build --release && \
     cargo install --path circom
-# install node dependencies
+
+# install node dependencies first then copy sources
 WORKDIR /app
+COPY package.json yarn.lock ./
+COPY packages/circuits/package.json packages/circuits/yarn.lock packages/circuits/
+COPY packages/server/package.json packages/server/yarn.lock packages/server/
+COPY packages/client/package*.json packages/client/
+RUN yarn install --non-interactive --frozen-lockfile
 COPY . .
-RUN yarn install --non-interactive
 
 # build the zk circuit
 WORKDIR /app/packages/circuits
 RUN yarn run compile && \
-    yarn run info && \
     yarn run setup && \
     yarn run verificationKey
 

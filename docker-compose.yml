@@ -1,20 +1,24 @@
 services:
-    server:
-        container_name: server
-        build:
-            context: .
-            target: server
-        image: zkwordle:server
-        network_mode: host
+     server:
+          container_name: server
+          build:
+               context: .
+               target: server
+          image: zkwordle:server
+          environment:
+               NODE_ENV: development
+               HOST: localhost
+               PORT: 3001
+          network_mode: host
 
-    client:
-        container_name: client
-        build:
-            context: .
-            target: client-dev
-        image: zkwordle:client-dev
-        depends_on:
-            - server
-        environment:
-            REACT_APP_API_URL: http://localhost:3001/graphql
-        network_mode: host
+     client:
+          container_name: client
+          build:
+               context: .
+               target: client-dev
+          image: zkwordle:client-dev
+          depends_on:
+               - server
+          environment:
+               REACT_APP_API_URL: http://localhost:3001/graphql
+          network_mode: host
