@@ -1,4 +1,4 @@
-FROM node:16-alpine as base
+FROM node:16-alpine as builder
 RUN apk add --no-cache \
         ca-certificates \
         gcc \
@@ -45,35 +45,46 @@ COPY packages/circuits/package.json packages/circuits/yarn.lock packages/circuit
 COPY packages/server/package.json packages/server/yarn.lock packages/server/
 COPY packages/client/package*.json packages/client/
 RUN yarn install --non-interactive --frozen-lockfile
-COPY . .
 
 # build the zk circuit
 WORKDIR /app/packages/circuits
+COPY packages/circuits ./
 RUN yarn run compile && \
     yarn run setup && \
     yarn run verificationKey
 
 # build the server app
 WORKDIR /app/packages/server
+COPY packages/server ./
 RUN yarn run copy:zk && \
     yarn run codegen && \
     yarn run compile && \
     yarn run copy:wasm:build
 
+
+FROM node:16-alpine as server
+WORKDIR /app
+COPY --from=builder /app/packages/server/package*.json ./
+RUN yarn install --non-interactive --prod
+COPY --from=builder /app/packages/server/build ./
+CMD node main.js
+
 # build the client app
+FROM builder as client-builder
 WORKDIR /app/packages/client
+# needed to set react env vars at build time
+ARG REACT_APP_API_URL
+ENV REACT_APP_API_URL $REACT_APP_API_URL
+COPY packages/client ./
 RUN yarn run codegen && \
     yarn run copy:key && \
     yarn run build
 
-
-FROM node:16-alpine as server
-WORKDIR /app
-COPY --from=base /app/packages/server/package*.json ./
-RUN yarn install --non-interactive --prod
-COPY --from=base /app/packages/server/build ./
-CMD node main.js
-
-FROM base AS client-dev
-WORKDIR /app/packages/client
-CMD npm run start
+FROM nginx:alpine as client
+RUN apk --no-cache add curl
+RUN curl -L https://github.com/a8m/envsubst/releases/download/v1.2.0/envsubst-`uname -s`-`uname -m` -o envsubst && \
+    chmod +x envsubst && \
+    mv envsubst /usr/local/bin
+COPY --from=client-builder /app/packages/client/nginx.config /etc/nginx/nginx.template
+CMD ["/bin/sh", "-c", "envsubst < /etc/nginx/nginx.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+COPY --from=client-builder /app/packages/client/build /usr/share/nginx/html

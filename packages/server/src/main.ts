@@ -1,4 +1,6 @@
 import fastify from 'fastify'
+import cors from 'fastify-cors'
+import helmet from 'fastify-helmet'
 import { getGraphQLParameters, processRequest, renderGraphiQL, sendResult, shouldRenderGraphiQL, Request as HRequest } from 'graphql-helix'
 import { envelop, useLogger, useSchema, useTiming, useMaskedErrors, useErrorHandler } from '@envelop/core'
 import { useParserCache } from '@envelop/parser-cache'
@@ -14,6 +16,7 @@ import { getSchema } from './graphql'
 const NODE_ENV = process.env.NODE_ENV ?? 'production'
 const HOST = process.env.HOST ?? '0.0.0.0'
 const PORT = process.env.PORT ?? 3001
+const CLIENT_URL = process.env.CLIENT_URL ?? 'https://zkwordle.herokuapp.com'
 
 type Request = HRequest & {
     custom: {
@@ -22,6 +25,11 @@ type Request = HRequest & {
 }
 
 const app = fastify()
+app.register(helmet)
+app.register(cors, {
+    origin: NODE_ENV === 'production' ? CLIENT_URL : true,
+    methods: NODE_ENV === 'production' ? ['POST'] : ['GET', 'POST'],
+})
 
 async function main() {
     const schema = await getSchema()
@@ -104,10 +112,17 @@ async function main() {
                 // 3) PUSH: a stream of events to push back down the client for a subscription
                 // The 'sendResult' is a NodeJS-only shortcut for handling all possible types of Graphql responses,
                 // See 'Advanced Usage' below for more details and customizations available on that layer.
-                sendResult(result, res.raw)
+
+                // :warning: Is removing headers https://github.com/contra/graphql-helix/issues/75
+                //sendResult(result, res.raw)
 
                 // Tell fastify a response was sent
-                res.sent = true
+                if (result.type === 'RESPONSE') {
+                    res.status(result.status);
+                    res.send(result.payload);
+                } else {
+                    res.send({ errors: [{ message: 'Not Supported' }] });
+                }
             }
         },
     })
