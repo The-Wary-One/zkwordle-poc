@@ -1,0 +1,73 @@
+name: ci
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    builder:
+        runs-on: ubuntu-20.04
+        steps:
+            # Setup environment
+          - 
+            name: Checkout
+            uses: actions/checkout@v2
+            with:
+                submodules: true
+          -
+            name: Install heroku's cli
+            run: sudo apt update && sudo apt install heroku
+          -
+            name: Set up Docker Buildx
+            uses: docker/setup-buildx-action@v1
+          -
+            name: Login to DockerHub
+            uses: docker/login-action@v1
+            with:
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_TOKEN }}
+          -
+            name: Login to Heroku container registry
+            uses: docker/login-action@v1
+            with:
+                registry: registry.heroku.com
+                username: _
+                password: ${{ secrets.HEROKU_API_KEY }}
+
+            # Build and push docker images
+          -
+            name: Build, cache and push the server image
+            uses: docker/build-push-action@v2
+            with:
+                context: .
+                target: server
+                tags: |
+                    thewaryone/zkwordle-server:latest
+                    registry.heroku.com/zkwordle-server/web
+                platforms: linux/amd64
+                cache-from: type=gha
+                cache-to: type=gha,mode=max # the server and client must use the same circuit artifacts to generate valid zk proofs!
+                push: true
+          -
+            name: Build and push the client image
+            uses: docker/build-push-action@v2
+            with:
+                context: .
+                target: client
+                tags: |
+                    thewaryone/zkwordle-client:latest
+                    registry.heroku.com/zkwordle/web
+                platforms: linux/amd64
+                cache-from: type=gha
+                cache-to: type=gha,mode=max
+                push: true
+
+            # Release new builds
+          -
+            name: Release new builds
+            run: |
+                heroku container:release -a zkwordle-server web
+                heroku container:release -a zkwordle web
+            env:
+                HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
