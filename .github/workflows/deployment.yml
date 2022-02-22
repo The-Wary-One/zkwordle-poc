@@ -53,7 +53,7 @@ jobs:
                 context: .
                 target: client
                 build-args: |
-                    REACT_APP_API_URL: https://zkwordle-server.herokuapp.com/graphql
+                    REACT_APP_API_URL=https://zkwordle-server.herokuapp.com/graphql
                 tags: |
                     thewaryone/zkwordle-client:latest
                     registry.heroku.com/zkwordle/web
