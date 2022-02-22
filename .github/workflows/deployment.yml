@@ -16,9 +16,6 @@ jobs:
             with:
                 submodules: true
           -
-            name: Install heroku's cli
-            run: sudo snap install --classic heroku
-          -
             name: Set up Docker Buildx
             uses: docker/setup-buildx-action@v1
           -
@@ -55,6 +52,8 @@ jobs:
             with:
                 context: .
                 target: client
+                build-args: |
+                    REACT_APP_API_URL: https://zkwordle-server.herokuapp.com/graphql
                 tags: |
                     thewaryone/zkwordle-client:latest
                     registry.heroku.com/zkwordle/web
