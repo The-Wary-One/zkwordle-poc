@@ -56,6 +56,8 @@ template Wordle(l) {
             hint[i] = 2;
             // To avoid double counting present letters
             g[i] = 0;
+        } else {
+            hint[i] = 0;
         }
     }
     // Then mark the present letters
@@ -64,7 +66,7 @@ template Wordle(l) {
             if (g[i] == solution[j]) {
                 hint[i] = 1;
                 // To avoid double counting
-                g[j] = 0;
+                g[i] = 0;
             }
         }
         out[i] <-- hint[i];
