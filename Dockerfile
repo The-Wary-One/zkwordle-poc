@@ -64,8 +64,8 @@ RUN yarn run copy:zk && \
 
 FROM node:16-alpine as server
 WORKDIR /app
-COPY --from=builder /app/packages/server/package*.json ./
-RUN yarn install --non-interactive --prod
+COPY --from=builder /app/packages/server/package.json /app/packages/server/yarn.lock ./
+RUN yarn install --non-interactive --prod --frozen-lockfile
 COPY --from=builder /app/packages/server/build ./
 CMD node main.js
 
