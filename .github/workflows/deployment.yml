@@ -6,7 +6,7 @@ on:
             - main
 
 jobs:
-    builder:
+    deploy:
         runs-on: ubuntu-20.04
         steps:
             # Setup environment
@@ -17,7 +17,7 @@ jobs:
                 submodules: true
           -
             name: Install heroku's cli
-            run: sudo apt update && sudo apt install heroku
+            run: sudo snap install --classic heroku
           -
             name: Set up Docker Buildx
             uses: docker/setup-buildx-action@v1
